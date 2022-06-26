@@ -87,6 +87,7 @@ void RandomSampler::subsample_with_size(const std::vector<size_t>& samples,
             subsamples.begin());
 }
 
+// sample_from_clusters函数：
 void RandomSampler::sample_from_clusters(const std::vector<size_t>& clusters,
                                          std::vector<size_t>& samples) {
   if (options.get_clusters().empty()) {
@@ -109,6 +110,7 @@ void RandomSampler::sample_from_clusters(const std::vector<size_t>& clusters,
     }
   }
 }
+//----------------------------------------------------
 
 void RandomSampler::get_samples_in_clusters(const std::vector<size_t>& clusters,
                                             std::vector<size_t>& samples) {

@@ -22,7 +22,7 @@
 #include "tree/TreeTrainer.h"
 
 namespace grf {
-
+//TreeTrainer的构造函数
 TreeTrainer::TreeTrainer(std::unique_ptr<RelabelingStrategy> relabeling_strategy,
                          std::unique_ptr<SplittingRuleFactory> splitting_rule_factory,
                          std::unique_ptr<OptimizedPredictionStrategy> prediction_strategy) :
@@ -30,26 +30,29 @@ TreeTrainer::TreeTrainer(std::unique_ptr<RelabelingStrategy> relabeling_strategy
     splitting_rule_factory(std::move(splitting_rule_factory)),
     prediction_strategy(std::move(prediction_strategy)) {}
 
+//TreeTrainer的成员函数--train
 std::unique_ptr<Tree> TreeTrainer::train(const Data& data,
                                          RandomSampler& sampler,
                                          const std::vector<size_t>& clusters,
                                          const TreeOptions& options) const {
   std::vector<std::vector<size_t>> child_nodes;
-  std::vector<std::vector<size_t>> nodes;
+  std::vector<std::vector<size_t>> nodes; // 父节点
   std::vector<size_t> split_vars;
   std::vector<double> split_values;
   std::vector<bool> send_missing_left;
 
-  child_nodes.emplace_back();
+  child_nodes.emplace_back(); //append空值，使得{}变成{{}}
   child_nodes.emplace_back();
   create_empty_node(child_nodes, nodes, split_vars, split_values, send_missing_left);
+  //经过该函数之后，各值变为child_nodes = {{0},{0}}, nodes={0}, split_vars={0},split_values={0},send_missing_left={True}
 
   std::vector<size_t> new_leaf_samples;
-
+  
+  // 先构建父节点nodes，直接将部分数据给到nodes，且这部分数据将用于后续的节点分裂
   if (options.get_honesty()) {
-    std::vector<size_t> tree_growing_clusters;
+    std::vector<size_t> tree_growing_clusters; //如果是honest分裂，则cluster还得区分tree_growing_cluster和new_leaf_cluster，前者用于分裂节点，后者用于评估结果
     std::vector<size_t> new_leaf_clusters;
-    sampler.subsample(clusters, options.get_honesty_fraction(), tree_growing_clusters, new_leaf_clusters);
+    sampler.subsample(clusters, options.get_honesty_fraction(), tree_growing_clusters, new_leaf_clusters); //subsample实现了tree_growing_cluster和new_leaf_cluster的划分
 
     sampler.sample_from_clusters(tree_growing_clusters, nodes[0]);
     sampler.sample_from_clusters(new_leaf_clusters, new_leaf_samples);
@@ -64,6 +67,7 @@ std::unique_ptr<Tree> TreeTrainer::train(const Data& data,
   }
   */
   // nodes[0].size() is the number of samples subsampled for this tree.
+  //splitting_rule_factory是TreeTrainer类的成员变量，是个指针，所以用->来调用方法，注意，main函数调用udcf_trainer来创建trainer实例，而udcf_trainer函数指明了splitting_rule_factory指向
   std::unique_ptr<SplittingRule> splitting_rule = splitting_rule_factory->create(
       nodes[0].size(), options);
   //std::cout << " TreeTrainer.cpp nodes[0].size()" << nodes[0].size() << std::endl;
@@ -110,6 +114,7 @@ std::unique_ptr<Tree> TreeTrainer::train(const Data& data,
 
   return tree;
 }
+//----------------train函数结束--------------------------
 
 void TreeTrainer::repopulate_leaf_nodes(const std::unique_ptr<Tree>& tree,
                                         const Data& data,
@@ -242,6 +247,7 @@ bool TreeTrainer::split_node_internal(size_t node,
   return false;
 }
 
+// create_empty_node成员方法
 void TreeTrainer::create_empty_node(std::vector<std::vector<size_t>>& child_nodes,
                                     std::vector<std::vector<size_t>>& samples,
                                     std::vector<size_t>& split_vars,
@@ -254,5 +260,5 @@ void TreeTrainer::create_empty_node(std::vector<std::vector<size_t>>& child_node
   split_values.push_back(0);
   send_missing_left.push_back(true);
 }
-
+//--------------------------------------
 } // namespace grf

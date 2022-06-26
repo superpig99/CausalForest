@@ -64,7 +64,8 @@ std::vector<std::unique_ptr<Tree>> ForestTrainer::train_trees(const Data& data,
     throw std::runtime_error("The honesty fraction is too close to 1 or 0, as no observations will be sampled.");
   }
   //----------------------------------------------------------------------
-
+  
+  //为什么要把树分成若干group？？
   uint num_groups = (uint) num_trees / options.get_ci_group_size();
 
   //split_sequence的作用是将thread_ranges进行赋值
@@ -79,9 +80,10 @@ std::vector<std::unique_ptr<Tree>> ForestTrainer::train_trees(const Data& data,
   std::vector<std::unique_ptr<Tree>> trees;
   trees.reserve(num_trees);
 
+  // thread_ranges是split_sequence函数运行后的结果，定义了每个线程上tree的数量
   for (uint i = 0; i < thread_ranges.size() - 1; ++i) {
     size_t start_index = thread_ranges[i];
-    size_t num_trees_batch = thread_ranges[i + 1] - start_index;
+    size_t num_trees_batch = thread_ranges[i + 1] - start_index; //每个线程上tree的数量
 
     futures.push_back(std::async(std::launch::async, // 启动一个新的线程调用Fn
                                  &ForestTrainer::train_batch, //执行train_batch这个函数
@@ -91,18 +93,19 @@ std::vector<std::unique_ptr<Tree>> ForestTrainer::train_trees(const Data& data,
                                  std::ref(data),
                                  options));
   }
+  //-----------------------------------------
   //将训练好的tree都放到trees里
   for (auto& future : futures) {
-    std::vector<std::unique_ptr<Tree>> thread_trees = future.get();
+    std::vector<std::unique_ptr<Tree>> thread_trees = future.get(); //从futures中取train_batch运行后的结果
     trees.insert(trees.end(),
                  std::make_move_iterator(thread_trees.begin()),
-                 std::make_move_iterator(thread_trees.end()));
+                 std::make_move_iterator(thread_trees.end())); //插入到trees的末尾
   }
 
   return trees;
 }
 //-------------------------------------------------------
-
+// train_batch
 std::vector<std::unique_ptr<Tree>> ForestTrainer::train_batch(
     size_t start,
     size_t num_trees,
@@ -115,11 +118,12 @@ std::vector<std::unique_ptr<Tree>> ForestTrainer::train_batch(
   nonstd::uniform_int_distribution<uint> udist; //均匀分布
   std::vector<std::unique_ptr<Tree>> trees; //先声明train_batch的返回值
   trees.reserve(num_trees * ci_group_size); //申请大小
-  
+
+  // 以下是构建num_trees棵树的过程
   for (size_t i = 0; i < num_trees; i++) {
     uint tree_seed = udist(random_number_generator); //生成满足均匀分布的随机数
     RandomSampler sampler(tree_seed, options.get_sampling_options());//定义了RandomSampler类的实例，等价写法是RandomSampler sampler=RandomSampler(tree_seed, options.get_sampling_options());
-    //以下是分情况进行训练，重点就是train_tree和train_ci_group
+    //以下是分情况进行训练，重点就是 train_tree 和 train_ci_group
     if (ci_group_size == 1) {
       std::unique_ptr<Tree> tree = train_tree(data, sampler, options);
       trees.push_back(std::move(tree));
@@ -132,6 +136,8 @@ std::vector<std::unique_ptr<Tree>> ForestTrainer::train_batch(
   }
   return trees;
 }
+//-----------------------------------------------
+// 构建一棵树
 std::unique_ptr<Tree> ForestTrainer::train_tree(const Data& data,
                                                 RandomSampler& sampler,
                                                 const ForestOptions& options) const {
@@ -139,7 +145,8 @@ std::unique_ptr<Tree> ForestTrainer::train_tree(const Data& data,
   //sample_clusters是随机选取部分数据，赋值到clusters变量
   sampler.sample_clusters(data.get_num_rows(), options.get_sample_fraction(), clusters);
   //std::cout << "ForestTrainer.cpp 132 clusters.size()=" << clusters.size() << std::endl;
-  return tree_trainer.train(data, sampler, clusters, options.get_tree_options());
+  // 所以tree的训练是在TreeTrainer类下定义的
+  return tree_trainer.train(data, sampler, clusters, options.get_tree_options()); //由于train_tree是ForestTrainer的private成员函数，所以可以调用ForestTrainer类的成员函数
 }
 
 std::vector<std::unique_ptr<Tree>> ForestTrainer::train_ci_group(const Data& data,
