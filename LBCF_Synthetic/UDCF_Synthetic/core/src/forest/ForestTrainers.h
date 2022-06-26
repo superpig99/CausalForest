@@ -22,6 +22,8 @@
 
 namespace grf {
 
+// 以下都是grf命名空间里的全局函数，全都返回ForestTrainer类
+
 ForestTrainer instrumental_trainer(double reduced_form_weight,
                                    bool stabilize_splits);
 

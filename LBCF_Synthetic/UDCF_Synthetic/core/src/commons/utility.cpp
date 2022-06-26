@@ -23,10 +23,11 @@
 
 namespace grf {
 
+//split_sequence用于分配线程数
 void split_sequence(std::vector<uint>& result, uint start, uint end, uint num_parts) {
 
   result.reserve(num_parts + 1);
-
+  //分三种情况去分配线程
   // Return range if only 1 part
   if (num_parts == 1) {
     result.push_back(start);
@@ -57,6 +58,7 @@ void split_sequence(std::vector<uint>& result, uint start, uint end, uint num_pa
     result.push_back(i);
   }
 }
+//------------------------------------
 
 bool equal_doubles(double first, double second, double epsilon) {
   if (std::isnan(first)) {
