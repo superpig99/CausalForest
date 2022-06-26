@@ -56,8 +56,9 @@ ForestTrainer instrumental_trainer(double reduced_form_weight,
 ForestTrainer udcf_trainer(size_t num_treatments,
                                    size_t num_outcomes,
                                    bool stabilize_splits) {
-  size_t response_length = num_treatments * num_outcomes;
-  std::unique_ptr<RelabelingStrategy> relabeling_strategy(new UDCFRelabelingStrategy(response_length));
+  size_t response_length = num_treatments * num_outcomes; //变量1
+  std::unique_ptr<RelabelingStrategy> relabeling_strategy(new UDCFRelabelingStrategy(response_length)); //指针1，指向了一个类？空类？
+  //三元运算，指定split规则
   std::unique_ptr<SplittingRuleFactory> splitting_rule_factory = stabilize_splits
     ? std::unique_ptr<SplittingRuleFactory>(new UDCFSplittingRuleFactory(response_length, num_treatments))
     : std::unique_ptr<SplittingRuleFactory>(new MultiRegressionSplittingRuleFactory(response_length));

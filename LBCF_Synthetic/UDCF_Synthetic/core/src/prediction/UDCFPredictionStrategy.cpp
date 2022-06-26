@@ -29,7 +29,7 @@ UDCFPredictionStrategy::UDCFPredictionStrategy(size_t num_treatments,
                                                              size_t num_outcomes) {
   this->num_treatments = num_treatments;
   this->num_outcomes = num_outcomes;
-  this->num_types = num_treatments * (num_treatments + num_outcomes + 1) + num_outcomes + 1;
+  this->num_types = num_treatments * (num_treatments + num_outcomes + 1) + num_outcomes + 1; //这个是干嘛的？？？
   this->weight_index = 0;
   this->Y_index = 1;
   this->W_index = this->Y_index + num_outcomes;
