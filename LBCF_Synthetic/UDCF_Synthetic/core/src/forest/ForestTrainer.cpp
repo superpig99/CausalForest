@@ -31,12 +31,12 @@ namespace grf {
 ForestTrainer::ForestTrainer(std::unique_ptr<RelabelingStrategy> relabeling_strategy,
                              std::unique_ptr<SplittingRuleFactory> splitting_rule_factory,
                              std::unique_ptr<OptimizedPredictionStrategy> prediction_strategy) :
-    tree_trainer(std::move(relabeling_strategy),
+    tree_trainer(std::move(relabeling_strategy), //这里是调用了tree_trainer的构造函数
                  std::move(splitting_rule_factory),
                  std::move(prediction_strategy)) {}
 
 Forest ForestTrainer::train(const Data& data, const ForestOptions& options) const {
-  std::vector<std::unique_ptr<Tree>> trees = train_trees(data, options);
+  std::vector<std::unique_ptr<Tree>> trees = train_trees(data, options); //train_trees是ForestTrainer的私有成员函数；
 
   size_t num_variables = data.get_num_cols() - data.get_disallowed_split_variables().size();
   //std::cout << "data.get_num_cols()=" << data.get_num_cols() << std::endl;
@@ -45,12 +45,14 @@ Forest ForestTrainer::train(const Data& data, const ForestOptions& options) cons
   return Forest(trees, num_variables, ci_group_size);
 }
 
+// train_trees函数的定义：
 std::vector<std::unique_ptr<Tree>> ForestTrainer::train_trees(const Data& data,
                                                               const ForestOptions& options) const {
   size_t num_samples = data.get_num_rows();
   uint num_trees = options.get_num_trees();
 
   // Ensure that the sample fraction is not too small and honesty fraction is not too extreme.
+  // 判断sample分割是否合理
   const TreeOptions& tree_options = options.get_tree_options();
   bool honesty = tree_options.get_honesty();
   double honesty_fraction = tree_options.get_honesty_fraction();
@@ -61,6 +63,7 @@ std::vector<std::unique_ptr<Tree>> ForestTrainer::train_trees(const Data& data,
              || (size_t) num_samples * options.get_sample_fraction() * (1-honesty_fraction) < 1)) {
     throw std::runtime_error("The honesty fraction is too close to 1 or 0, as no observations will be sampled.");
   }
+  //----------------------------------------------------------------------
 
   uint num_groups = (uint) num_trees / options.get_ci_group_size();
 
@@ -95,6 +98,7 @@ std::vector<std::unique_ptr<Tree>> ForestTrainer::train_trees(const Data& data,
 
   return trees;
 }
+//-------------------------------------------------------
 
 std::vector<std::unique_ptr<Tree>> ForestTrainer::train_batch(
     size_t start,
