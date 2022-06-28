@@ -34,6 +34,7 @@ int main()
     char tmp[256];
     getcwd(tmp, 256); //getcwd 方法会将当前工作目录（working directory）的绝对路径复制到参数 tmp 所指的内存空间中，而参数 256 是 tmp 所指的空间大小。
     std::cout << "Current working directory: " << tmp << std::endl;
+    //数据样例：ID,H1,H2,H3,H4,A,Value,Cost,Control_value,Control_cost
     // /UDCF/core/build  
     for( int j = 5; j <= 20;j = j + 5 ){ // 针对每一组noise数据进行预测
         auto data_vec = load_data("../../../data/train_data_"+std::to_string(j)+"uw.csv"); //train data
