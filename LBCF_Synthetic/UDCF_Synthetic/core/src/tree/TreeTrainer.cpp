@@ -42,7 +42,7 @@ std::unique_ptr<Tree> TreeTrainer::train(const Data& data,
   std::vector<bool> send_missing_left;
 
   child_nodes.emplace_back(); //append空值，使得{}变成{{}}
-  child_nodes.emplace_back();
+  child_nodes.emplace_back(); //两次该操作，则child_nodes从{}变为{{},{}}
   create_empty_node(child_nodes, nodes, split_vars, split_values, send_missing_left);
   //经过该函数之后，各值变为child_nodes = {{0},{0}}, nodes={0}, split_vars={0},split_values={0},send_missing_left={True}
 
@@ -54,7 +54,7 @@ std::unique_ptr<Tree> TreeTrainer::train(const Data& data,
     std::vector<size_t> new_leaf_clusters;
     sampler.subsample(clusters, options.get_honesty_fraction(), tree_growing_clusters, new_leaf_clusters); //subsample实现了tree_growing_cluster和new_leaf_cluster的划分
 
-    sampler.sample_from_clusters(tree_growing_clusters, nodes[0]);
+    sampler.sample_from_clusters(tree_growing_clusters, nodes[0]); //从clusters中将数据给到nodes[0]
     sampler.sample_from_clusters(new_leaf_clusters, new_leaf_samples);
   } else {
     //std::cout << "TreeTrainer.cpp not honesty" << std::endl;
@@ -67,7 +67,9 @@ std::unique_ptr<Tree> TreeTrainer::train(const Data& data,
   }
   */
   // nodes[0].size() is the number of samples subsampled for this tree.
-  //splitting_rule_factory是TreeTrainer类的成员变量，是个指针，所以用->来调用方法，注意，main函数调用udcf_trainer来创建trainer实例，而udcf_trainer函数指明了splitting_rule_factory指向
+  
+  //splitting_rule_factory是TreeTrainer类的成员变量，是个指针，所以用->来调用方法
+  //注意，main函数调用udcf_trainer来创建trainer实例，而udcf_trainer函数指明了splitting_rule_factory指向UDCFRelabelingStrategy
   std::unique_ptr<SplittingRule> splitting_rule = splitting_rule_factory->create(
       nodes[0].size(), options);
   //std::cout << " TreeTrainer.cpp nodes[0].size()" << nodes[0].size() << std::endl;
@@ -114,7 +116,7 @@ std::unique_ptr<Tree> TreeTrainer::train(const Data& data,
 
   return tree;
 }
-//----------------train函数结束--------------------------
+//----------------TreeTrainer::train函数结束--------------------------
 
 void TreeTrainer::repopulate_leaf_nodes(const std::unique_ptr<Tree>& tree,
                                         const Data& data,
