@@ -75,7 +75,7 @@ std::unique_ptr<Tree> TreeTrainer::train(const Data& data,
   //std::cout << " TreeTrainer.cpp nodes[0].size()" << nodes[0].size() << std::endl;
   size_t num_open_nodes = 1;
   size_t i = 0;
-  Eigen::ArrayXXd responses_by_sample(data.get_num_rows(), relabeling_strategy->get_response_length());
+  Eigen::ArrayXXd responses_by_sample(data.get_num_rows(), relabeling_strategy->get_response_length()); //创建/初始化ArrayXXd类的实例，只不过ArrayXXd是再Eigen这个命名空间下的
   while (num_open_nodes > 0) {
     bool is_leaf_node = split_node(i,
                                    data,
@@ -137,13 +137,14 @@ void TreeTrainer::repopulate_leaf_nodes(const std::unique_ptr<Tree>& tree,
   }
 }
 
+//=============创建分裂变量子集==================
 void TreeTrainer::create_split_variable_subset(std::vector<size_t>& result,
                                                RandomSampler& sampler,
                                                const Data& data,
                                                uint mtry) const {
 
   // Randomly select an mtry for this tree based on the overall setting.
-  size_t num_independent_variables = data.get_num_cols() - data.get_disallowed_split_variables().size();
+  size_t num_independent_variables = data.get_num_cols() - data.get_disallowed_split_variables().size(); //num_independent_variables=列数（特征总数）-不可分裂的特征总数
   size_t mtry_sample = sampler.sample_poisson(mtry);
   size_t split_mtry = std::max<size_t>(std::min<size_t>(mtry_sample, num_independent_variables), 1uL);
 
@@ -152,7 +153,9 @@ void TreeTrainer::create_split_variable_subset(std::vector<size_t>& result,
                data.get_disallowed_split_variables(),
                split_mtry);
 }
+//======================================================
 
+// 节点分裂：
 bool TreeTrainer::split_node(size_t node,
                              const Data& data,
                              const std::unique_ptr<SplittingRule>& splitting_rule,
@@ -215,7 +218,9 @@ bool TreeTrainer::split_node(size_t node,
   // No terminal node
   return false;
 }
+//===============================节点分裂结束=======================
 
+//重点来了！！inter split实现！！！
 bool TreeTrainer::split_node_internal(size_t node,
                                       const Data& data,
                                       const std::unique_ptr<SplittingRule>& splitting_rule,
@@ -231,7 +236,7 @@ bool TreeTrainer::split_node_internal(size_t node,
     split_values[node] = -1.0;
     return true;
   }
-
+  // relabel阶段！调用的是UDCFRelabelingStrategy类里的方法
   bool stop = relabeling_strategy->relabel(samples[node], data, responses_by_sample);
 
   if (stop || splitting_rule->find_best_split(data,
@@ -248,6 +253,7 @@ bool TreeTrainer::split_node_internal(size_t node,
 
   return false;
 }
+//=========================================================
 
 // create_empty_node成员方法
 void TreeTrainer::create_empty_node(std::vector<std::vector<size_t>>& child_nodes,

@@ -136,6 +136,7 @@ void RandomSampler::shuffle_and_split(std::vector<size_t>& samples,
   samples.resize(size);
 }
 
+//抓阄选择要被分裂的特征？
 void RandomSampler::draw(std::vector<size_t>& result,
                          size_t max,
                          const std::set<size_t>& skip,

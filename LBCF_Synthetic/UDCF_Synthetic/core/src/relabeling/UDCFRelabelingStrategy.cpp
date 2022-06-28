@@ -7,6 +7,7 @@ namespace grf {
 UDCFRelabelingStrategy::UDCFRelabelingStrategy(size_t response_length) :
   response_length(response_length) {}
 
+// relabel实现！！
 bool UDCFRelabelingStrategy::relabel(
     const std::vector<size_t>& samples,
     const Data& data,
@@ -16,6 +17,7 @@ bool UDCFRelabelingStrategy::relabel(
   size_t num_samples = samples.size();
   size_t num_treatments = data.get_num_treatments();
   size_t num_outcomes = data.get_num_outcomes();
+  
   if (num_samples <= num_treatments) {
     return true;
   }
@@ -74,6 +76,7 @@ bool UDCFRelabelingStrategy::relabel(
   }
   return false;
 }
+//======================================================
 
 size_t UDCFRelabelingStrategy::get_response_length() const {
   return response_length;

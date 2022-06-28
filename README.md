@@ -12,3 +12,9 @@ ForestTrainer类的pulic成员函数train调用ForestTrainer类的private成员�
 
 1. 准备父节点数据集：这里会判断是否采用honest构造方式，若honest，则会将待分裂数据集随机采样分成tree_growing_clusters和new_leaf_clusters两部分，前者用于分裂节点（给到父节点nodes[0]），后者用于评估结果；
 2. 指定分裂规则splitting_rule，`\UDCF_Synthetic\core\src\splitting\factory`路径下包含多种分裂规则，而本次main函数通过调用udcf_trainer指明了采用UDCFSplittingRuleFactory，
+
+
+
+
+##### 参数说明：
+- mtry是LBCF论文里的超参m！
