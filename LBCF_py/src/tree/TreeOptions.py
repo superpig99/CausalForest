@@ -1,5 +1,4 @@
 ### TreeOptions类：
-### 依赖于：
 
 class TreeOptions:
 # public:
