@@ -1,3 +1,7 @@
+> ref:
+> GRF-github: https://github.com/grf-labs/grf
+> LBCF-github: https://github.com/www2022paper/WWW-2022-PAPER-SUPPLEMENTARY-MATERIALS
+
 # CausalForest
 
 ## LBCF实现逻辑说明
