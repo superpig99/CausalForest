@@ -66,7 +66,7 @@ bool equal_doubles(double first, double second, double epsilon) {
   }
   return std::abs(first - second) < epsilon;
 }
-
+//-------------------------load_data函数------------------------
 std::pair<std::vector<double>, std::vector<size_t>> load_data(const std::string& file_name) {
   size_t num_rows = 0;
   size_t num_cols = 0;
@@ -88,19 +88,20 @@ std::pair<std::vector<double>, std::vector<size_t>> load_data(const std::string&
     }
     ++line_count;
   }
-
   num_rows = line_count;
   input_file.close();
-  input_file.open(file_name);
+  //到此为止是实现num_rows的赋值
 
   // Read the first line to determine the number of columns.
+  input_file.open(file_name);
   std::string dummy_token;
   std::stringstream first_line_stream(first_line);
   while (first_line_stream >> dummy_token) {
     num_cols++;
   }
+  //到此为止是实现num_cols的赋值
 
-  // Read the entire contents.
+  // Read the entire contents，内容存储在storage中
   std::vector<double> storage(num_rows * num_cols);
   line.clear();
   size_t row = 0;
@@ -126,6 +127,7 @@ std::pair<std::vector<double>, std::vector<size_t>> load_data(const std::string&
   std::cout<< "commons/utility.cpp " << "num_rows=" << num_rows << ";num_cols= " << num_cols << std::endl;
   return std::make_pair(storage, dim);
 }
+//---------------------load_data结束-------------------------------------
 
 void set_data(std::pair<std::vector<double>, std::vector<size_t>>& data, size_t row, size_t col, double value) {
   const std::vector<size_t>& dim = data.second;

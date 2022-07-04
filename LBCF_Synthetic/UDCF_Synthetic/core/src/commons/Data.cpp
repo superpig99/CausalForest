@@ -25,6 +25,7 @@
 
 namespace grf {
 
+// -------------------data初始化--------------------
 Data::Data(const double* data_ptr, size_t num_rows, size_t num_cols) {
   if (data_ptr == nullptr) {
     throw std::runtime_error("Invalid data storage: nullptr");
@@ -39,6 +40,7 @@ Data::Data(const std::vector<double>& data, size_t num_rows, size_t num_cols) :
 
 Data::Data(const std::pair<std::vector<double>, std::vector<size_t>>& data) :
   Data(data.first.data(), data.second.at(0), data.second.at(1)) {}
+// -------------data初始化结束------------
 
 void Data::set_outcome_index(size_t index) {
   set_outcome_index(std::vector<size_t>({index}));
@@ -83,6 +85,7 @@ void Data::set_censor_index(size_t index) {
   disallowed_split_variables.insert(index);
 }
 
+//--------------get_all_values函数-------------------
 std::vector<size_t> Data::get_all_values(std::vector<double>& all_values,
                                          std::vector<size_t>& sorted_samples,
                                          const std::vector<size_t>& samples,
@@ -117,6 +120,7 @@ std::vector<size_t> Data::get_all_values(std::vector<double>& all_values,
 
   return index;
 }
+//--------------get_all_values函数结束-------------------
 
 size_t Data::get_num_cols() const {
   return num_cols;
