@@ -189,6 +189,7 @@ void RandomSampler::draw_fisher_yates(std::vector<size_t>& result,
   );
 
   // Draw without replacement using Fisher Yates algorithm
+  // Fisher Yates算法保证了对数组shuffle后，任何一个元素出现在数组中任何一个位置的概率是相等的。
   nonstd::uniform_real_distribution<double> distribution(0.0, 1.0);
   for (size_t i = 0; i < num_samples; ++i) {
     size_t j = i + distribution(random_number_generator) * (max - skip.size() - i);

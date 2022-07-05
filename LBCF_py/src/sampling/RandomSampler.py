@@ -24,7 +24,7 @@ class RandomSampler:
     def subsample_with_size(samples,subsample_size,subsamples):
         pass
 
-    def draw(self,result,max,skip,num_samples):
+    def draw(self,result,max_n,skip,num_samples):
         pass
 
     def sample_poisson(self,mean):
@@ -34,8 +34,10 @@ class RandomSampler:
     def _shuffle_and_split(self,samples,n_all,size):
         pass
 
-    def _draw_simple(self,result,max,skip,num_samples):
+    def _draw_simple(self,result,max_n,skip,num_samples):
         pass
 
-    def _draw_fisher_yates(self,result,max,skip,num_samples):
-        pass
+    def _draw_fisher_yates(self,result,max_n,skip,num_samples):
+        result = np.arange(max_n)
+        for i in skip:
+            if 
