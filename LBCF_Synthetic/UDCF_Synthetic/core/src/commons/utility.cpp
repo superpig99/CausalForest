@@ -112,7 +112,7 @@ std::pair<std::vector<double>, std::vector<size_t>> load_data(const std::string&
     while (line_stream >> token) {
       storage.at(column * num_rows + row) = std::stod(token);
       ++column;
-    }
+    } // 注意！！这里是按列存储的数据！！！
     if (column > num_cols) {
       throw std::runtime_error("Could not open input file. Too many columns in a row.");
     } else if (column < num_cols) {

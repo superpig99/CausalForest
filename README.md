@@ -22,3 +22,5 @@ ForestTrainer类的pulic成员函数train调用ForestTrainer类的private成员�
 
 ##### 参数说明：
 - mtry是LBCF论文里的超参m！
+- num_treatments是treatment的维度【作为treatment字段的个数】
+- 同理，num_outcomes是outcome的维度【作为outcome字段的个数】

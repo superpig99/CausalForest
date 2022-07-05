@@ -90,6 +90,12 @@ std::vector<size_t> Data::get_all_values(std::vector<double>& all_values,
                                          std::vector<size_t>& sorted_samples,
                                          const std::vector<size_t>& samples,
                                          size_t var) const {
+  // all_values存储用于分裂的样本
+  // sorted_samples存储排序好的用于分裂的样本的所在行【index
+  // samples是传进来的 用于分裂的样本的所在行【index
+  // var指示用户分裂的列/字段/特征
+
+  //get函数就是获取第sample行第var列的数据，然后存储到all_values里
   all_values.resize(samples.size());
   for (size_t i = 0; i < samples.size(); i++) {
     size_t sample = samples[i];
@@ -97,28 +103,31 @@ std::vector<size_t> Data::get_all_values(std::vector<double>& all_values,
   }
 
   sorted_samples.resize(samples.size());
-  std::vector<size_t> index(samples.size());
+  std::vector<size_t> index(samples.size()); // index的初始化
    // fill with [0, 1,..., samples.size() - 1]
-  std::iota(index.begin(), index.end(), 0);
+  std::iota(index.begin(), index.end(), 0); // 序列填充，从0开始自增，填充index向量
   // sort index based on the split values (argsort)
   // the NaN comparison places all NaNs at the beginning
   // stable sort is needed for consistent element ordering cross platform,
   // otherwise the resulting sums used in the splitting rules may compound rounding error
   // differently and produce different splits.
+  // 排序操作是对index进行的，但排序规则是比较all_values的数值大小 (argsort)
   std::stable_sort(index.begin(), index.end(), [&](const size_t& lhs, const size_t& rhs) {
     return all_values[lhs] < all_values[rhs] || (std::isnan(all_values[lhs]) && !std::isnan(all_values[rhs]));
   });
 
+  // 将排序结果(index)存储到sorted_samples中，并对all_values进行排序
   for (size_t i = 0; i < samples.size(); i++) {
     sorted_samples[i] = samples[index[i]];
     all_values[i] = get(sorted_samples[i], var);
   }
 
+  // 删除all_values中的重复值
   all_values.erase(unique(all_values.begin(), all_values.end(), [&](const double& lhs, const double& rhs) {
     return lhs == rhs || (std::isnan(lhs) && std::isnan(rhs));
   }), all_values.end());
 
-  return index;
+  return index; // index是对samples的排序（argsort）
 }
 //--------------get_all_values函数结束-------------------
 

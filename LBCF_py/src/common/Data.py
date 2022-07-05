@@ -1,6 +1,9 @@
 ### Data类：
 ### 依赖类：ThirdParty
 
+import numpy as np
+import pandas as pd
+
 class Data:
 # public:
     # ----------Data初始化--------------------
@@ -58,50 +61,85 @@ class Data:
         self._disallowed_split_variables.append(index)
 
     def get_all_values(self,all_values,sorted_samples,samples,var):
-        pass
+        '''
+        函数说明：
+        该函数的目的是得到并返回all_values，而all_values是用于分裂的所有样本；
+        sorted_samples是对all_values排序（升序）之后的结果
+        参数说明：
+        all_values存储用于分裂的样本
+        sorted_samples存储排序好的用户分裂的样本
+        samples是传进来的 用于分裂的样本的所在行【index
+        var指示用户分裂的列/字段/特征
+        '''
+        # 一次性获取samples所对应的所有数据，但注意数据类型的转变
+        if len(samples)==0:
+            raise ValueError('No data for splitting!')
+        elif len(samples)==1:
+            all_values = self.get(samples,var)
+        else:
+            all_values = self.get(samples,var).values # 这种情形下，all_values是np.array类型数据
+
+        # index 但是这里没有办法处理空值
+        index = np.argsort(all_values) # 得到all_values的argsort
+        all_values = np.sort(all_values) # 对all_values排序
+
+        # 生成sorted_values
+        sorted_samples = [samples[i] for i in index]
+
+        # 还差一步去除空值
+
+        # all_values去重
+        all_values = np.unique(all_values) # 不支持None，得先去除空值
+
+        return index
 
     def get_num_cols(self):
-        pass
+        return self._num_cols
 
     def get_num_rows(self):
-        pass
+        return self._num_rows
 
     def get_num_outcomes(self):
-        pass
+        return len(self._outcome_index)
 
     def get_num_treatments(self):
-        pass
+        return len(self._treatment_index)
 
     def get_disallowed_split_variables(self):
-        pass
+        return self._disallowed_split_variables
 
     ## inline
     def get_outcome(self,row):
-        pass
+        # 适用于只有一列outcome的情形
+        return self.get(row,self._outcome_index[0])
 
     def get_outcomes(self,row):
-        pass
+        # 适用于有多列outcome的情形
+        return self.get(row,self._outcome_index).values
 
     def get_treatment(self,row):
-        pass
+        # 适用于只有一列treatment的情形
+        return self.get(row,self._treatment_index[0])
 
     def get_treatments(self,row):
-        pass
+        # 适用于有多列treatment的情形
+        return self.get(row,self._treatment_index).values
 
     def get_instrument(self,row):
-        pass
+        return self.get(row,self._instrument_index)
 
     def get_weight(self,row):
-        pass
+        return self.get(row,self._weight_index)
 
     def get_causal_survival_numerator(self,row):
-        pass
+        return self.get(row,self._causal_survival_numerator_index)
 
     def get_causal_survival_denominator(self,row):
-        pass
+        return self.get(row,self._causal_survival_denominator_index)
 
     def is_failure(self,row):
-        pass
+        return self.get(row,self._censor_index) > 0.0
 
-    def get(self,row,col):
-        pass
+    def get(self,row,col): # cpp里的data是按列存储的
+        return self._data.iloc[row,col] # 这里是按pandas来写的
+        # 按照这种写法，row和col可以是list类型，一次性取出多个数据

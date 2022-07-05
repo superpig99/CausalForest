@@ -183,7 +183,7 @@ inline bool Data::is_failure(size_t row) const {
 }
 
 inline double Data::get(size_t row, size_t col) const {
-  return data_ptr[col * num_rows + row];
+  return data_ptr[col * num_rows + row]; //这里的取数是和load_data函数里的存数是保持一致的
 }
 
 } // namespace grf
