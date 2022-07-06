@@ -7,6 +7,7 @@ class SamplingOptions:
         if sample_clusters==0:
             self._clusters = [0]
         else:
+            pass
             ### 不太理解这个函数的作用
 
 
