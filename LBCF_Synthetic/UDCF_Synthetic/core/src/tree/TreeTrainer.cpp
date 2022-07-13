@@ -54,8 +54,8 @@ std::unique_ptr<Tree> TreeTrainer::train(const Data& data,
     std::vector<size_t> new_leaf_clusters;
     sampler.subsample(clusters, options.get_honesty_fraction(), tree_growing_clusters, new_leaf_clusters); //subsample实现了tree_growing_cluster和new_leaf_cluster的划分
 
-    sampler.sample_from_clusters(tree_growing_clusters, nodes[0]); //从clusters中将数据给到nodes[0]
-    sampler.sample_from_clusters(new_leaf_clusters, new_leaf_samples);
+    sampler.sample_from_clusters(tree_growing_clusters, nodes[0]); //从tree_growing_clusters中将数据给到nodes[0]
+    sampler.sample_from_clusters(new_leaf_clusters, new_leaf_samples); //从new_leaf_clusters中将数据给到new_leaf_samples
   } else {
     //std::cout << "TreeTrainer.cpp not honesty" << std::endl;
     sampler.sample_from_clusters(clusters, nodes[0]);
@@ -73,16 +73,18 @@ std::unique_ptr<Tree> TreeTrainer::train(const Data& data,
   std::unique_ptr<SplittingRule> splitting_rule = splitting_rule_factory->create(
       nodes[0].size(), options);
   //std::cout << " TreeTrainer.cpp nodes[0].size()" << nodes[0].size() << std::endl;
-  size_t num_open_nodes = 1;
+
+  size_t num_open_nodes = 1; //这个参数是受到什么限制的呢？
   size_t i = 0;
   Eigen::ArrayXXd responses_by_sample(data.get_num_rows(), relabeling_strategy->get_response_length()); //创建/初始化ArrayXXd类的实例，只不过ArrayXXd是再Eigen这个命名空间下的
+  
   while (num_open_nodes > 0) {
     bool is_leaf_node = split_node(i,
                                    data,
                                    splitting_rule,
                                    sampler,
                                    child_nodes,
-                                   nodes,
+                                   nodes, //存储样本数据
                                    split_vars,
                                    split_values,
                                    send_missing_left,
@@ -100,6 +102,7 @@ std::unique_ptr<Tree> TreeTrainer::train(const Data& data,
   std::vector<size_t> drawn_samples;
   sampler.get_samples_in_clusters(clusters, drawn_samples);
 
+  // 所以 一次train会构建一棵树
   std::unique_ptr<Tree> tree(new Tree(0, child_nodes, nodes,
       split_vars, split_values, drawn_samples, send_missing_left, PredictionValues()));
 
@@ -138,6 +141,7 @@ void TreeTrainer::repopulate_leaf_nodes(const std::unique_ptr<Tree>& tree,
 }
 
 //=============创建分裂变量子集==================
+// 返回可用于分裂的字段下标
 void TreeTrainer::create_split_variable_subset(std::vector<size_t>& result,
                                                RandomSampler& sampler,
                                                const Data& data,
@@ -156,20 +160,20 @@ void TreeTrainer::create_split_variable_subset(std::vector<size_t>& result,
 //======================================================
 
 // 节点分裂：
-bool TreeTrainer::split_node(size_t node,
+bool TreeTrainer::split_node(size_t node, // TreeTrainer.train函数传进来的i变量
                              const Data& data,
                              const std::unique_ptr<SplittingRule>& splitting_rule,
                              RandomSampler& sampler,
                              std::vector<std::vector<size_t>>& child_nodes,
-                             std::vector<std::vector<size_t>>& samples,
+                             std::vector<std::vector<size_t>>& samples, // TreeTrainer.train函数传进来的nodes变量，包含父节点所有样本数据
                              std::vector<size_t>& split_vars,
                              std::vector<double>& split_values,
                              std::vector<bool>& send_missing_left,
                              Eigen::ArrayXXd& responses_by_sample,
                              const TreeOptions& options) const {
 
-  std::vector<size_t> possible_split_vars;
-  create_split_variable_subset(possible_split_vars, sampler, data, options.get_mtry());
+  std::vector<size_t> possible_split_vars; // 存储用于节点分裂的特征字段的下标
+  create_split_variable_subset(possible_split_vars, sampler, data, options.get_mtry()); // 获得用于节点分裂的特征字段的下标
   
   bool stop = split_node_internal(node,
                                   data,
@@ -183,8 +187,9 @@ bool TreeTrainer::split_node(size_t node,
                                   options.get_min_node_size());
   if (stop) {
     return true;
-  }
+  } // 不满足分裂标准时，就会停止分裂，说明分裂到了叶子节点
 
+  //若满足分裂标准，则获得该节点的分裂信息
   size_t split_var = split_vars[node];
   double split_value = split_values[node];
   bool send_na_left = send_missing_left[node];
@@ -215,7 +220,7 @@ bool TreeTrainer::split_node(size_t node,
     }
   }
 
-  // No terminal node
+  // No terminal node，即非叶子节点
   return false;
 }
 //===============================节点分裂结束=======================
@@ -236,9 +241,10 @@ bool TreeTrainer::split_node_internal(size_t node,
     split_values[node] = -1.0;
     return true;
   }
-  // relabel阶段！调用的是UDCFRelabelingStrategy类里的方法
+  // relabel阶段！调用的是UDCFRelabelingStrategy类里的方法，responses_by_sample是rho
   bool stop = relabeling_strategy->relabel(samples[node], data, responses_by_sample);
 
+// regression阶段！调用的是UDCFSplittingRuleFactory类
   if (stop || splitting_rule->find_best_split(data,
                                               node,
                                               possible_split_vars,
