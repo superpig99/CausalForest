@@ -231,6 +231,7 @@ bool UDCFSplittingRule::find_best_split(const Data& data,
       continue;
    }
   
+   // theta_left_vect的初始化方式是，从theta_left的第一个元素开始，到theta_left的最后一个元素为止，因为theta_left一共就rows*cols个元素
    std::vector<double> theta_left_vect(theta_left.data(), theta_left.data() + theta_left.rows() * theta_left.cols());
    std::vector<double> theta_right_vect(theta_right.data(), theta_right.data() + theta_right.rows() * theta_right.cols());
    double theta_left_mean = 0.0;
@@ -263,7 +264,7 @@ bool UDCFSplittingRule::find_best_split(const Data& data,
  
   return false;
 }
-
+/////////////////////////////////////////////
 
     
 void UDCFSplittingRule::find_best_split_value(const Data& data,

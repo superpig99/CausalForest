@@ -25,7 +25,7 @@ class Data:
     # 配合load_data的输出
     @classmethod
     def get_data_pair(cls, data_pair):
-        return cls(data_pair[0], data_pair[0][0], data_pair[0][1])
+        return cls(data_pair[0], data_pair[1][0], data_pair[1][1])
     # ----------data初始化完成-------------------
     
     def set_outcome_index(self,index): # c++存在两种写法，可合并
@@ -123,7 +123,7 @@ class Data:
 
     def get_treatments(self,row):
         # 适用于有多列treatment的情形
-        return self.get(row,self._treatment_index).values
+        return self.get(row,self._treatment_index).values # 得检验返回的values的维度
 
     def get_instrument(self,row):
         return self.get(row,self._instrument_index)
