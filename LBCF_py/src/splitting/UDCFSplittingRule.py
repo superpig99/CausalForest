@@ -32,8 +32,8 @@ private vars:
         self._imbalance_penalty = imbalance_penalty
         self._response_length = response_length
         self._num_treatments = num_treatments
-        self._counter = [0]*max_num_unique_values
-        self._weight_sums = [0]*max_num_unique_values
+        self._counter = np.zeros(max_num_unique_values)
+        self._weight_sums = np.zeros(max_num_unique_values)
         self._sums = np.zeros((max_num_unique_values,response_length))
         self._num_small_w = np.zeros((max_num_unique_values,num_treatments))
         self._sums_w = np.zeros((max_num_unique_values,num_treatments))
@@ -254,8 +254,86 @@ private vars:
                 sum_missing += sample_weight * responses_by_sample[sample]
                 n_missing += 1
 
-                sum_w_missing += sample_weight * treatments[sort_index]
-                sum_w_squared_missing += sample_weight * treatments
+                sum_w_missing += sample_weight * treatments[sort_index] # 注意treatments的维数和等号左边是否相符
+                sum_w_squared_missing += sample_weight * treatments[sort_index]**2
+                num_small_w_missing += (treatments[sort_index] < mean_node_w).astype(int)
+            else:
+                self._weight_sums[split_index] += sample_weight
+                self._sums[split_index] += sample_weight * responses_by_sample[sample]
+                self._counter[split_index] += 1
+
+                self._sums_w[split_index] += sample_weight * treatments[sort_index]
+                self._sums_w_squared[split_index] += sample_weight * treatments[sort_index]**2
+                self._num_small_w[split_index] += (treatments[sort_index] < mean_node_w).astype(int)
+
+            next_sample_value = data.get(next_sample,var)
+
+            if (sample_value != next_sample_value) and (next_sample_value is not None):
+                split_index += 1
+            
+        n_left = n_missing
+        ### 这以下都是np.array类型的赋值，但所赋均为地址，牵一发而动全身，需要判断是否需要深拷贝
+        weight_sum_left = weight_sum_missing
+        sum_left = sum_missing
+        sum_left_w = sum_w_missing
+
+        sum_right_w = np.zeros(num_treatments)
+        sum_left_w_squared = sum_w_squared_missing
+        num_left_samll_w = num_small_w_missing
+
+        for send_left in [True,False]:
+            if not send_left:
+                if n_missing == 0:
+                    break
+                
+                n_left = 0
+                weight_sum_left = 0
+                sum_left[:] = 0
+                sum_left_w[:] = 0
+                sum_left_w[:] = 0
+                sum_left_w_squared[:] = 0
+                num_left_samll_w[:] = 0
+            
+            for i in range(num_splits):
+                if (i==0) and (not send_left):
+                    continue
+                
+                n_left += self._counter[i]
+                weight_sum_left += self._weight_sums[i]
+                num_left_samll_w += self._num_small_w[i]
+                sum_left += self._sums[i]
+                sum_left_w += self._sums_w[i]
+                sum_left_w_squared += self._sums_w_squared[i]
+
+                if ((num_left_samll_w < self._min_node_size).any()) or ((n_left - num_left_samll_w < self._min_node_size).any()):
+                    continue
+                
+                n_right = num_samples - n_left
+
+                if ((num_node_small_w - num_left_samll_w < self._min_node_size).any()) or ((n_right - num_node_small_w + num_left_samll_w < self._min_node_size).any()):
+                    break
+                
+                if ((sum_left_w_squared - sum_left_w**2 / weight_sum_left < self._min_child_size).any()) or ((self._imbalance_penalty > 0.0) and (sum_left_w_squared - sum_left_w**2 / weight_sum_left == 0).all()):
+                    continue
+                
+                weight_sum_right = weight_sum_node - weight_sum_left
+
+                if ((sum_node_w_squared - sum_left_w_squared - (sum_node_w - sum_left_w)**2 / weight_sum_right < self._min_child_size).any()) or ((self._imbalance_penalty > 0.0) and (sum_node_w_squared - sum_left_w_squared - (sum_node_w - sum_left_w)**2 / weight_sum_right == 0).all()):
+                    continue
+                
+                decrease = sum(sum_left**2) / weight_sum_left + sum((sum_node -sum_left)**2) / weight_sum_right
+
+                penalty_edge = self._imbalance_penalty * (1.0 / n_left + 1.0 /n_right)
+                decrease -= penalty_edge
+
+                if decrease>0:
+                    best_value.append(possible_split_values[i])
+                    best_var.append(var)
+                    best_decrease.append(decrease)
+                    best_send_missing_left.append(send_left)
+
+
+
 
 
 
