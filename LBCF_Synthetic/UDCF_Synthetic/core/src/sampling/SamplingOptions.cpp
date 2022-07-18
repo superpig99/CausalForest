@@ -32,7 +32,7 @@ SamplingOptions::SamplingOptions(uint samples_per_cluster,
   // Map the provided clusters to IDs in the range 0 ... num_clusters.
   std::unordered_map<size_t, size_t> cluster_ids;
   for (size_t cluster : sample_clusters) {
-    if (cluster_ids.find(cluster) == cluster_ids.end()) {
+    if (cluster_ids.find(cluster) == cluster_ids.end()) { // 这里是判断cluster这个key是否存在于cluster_ids里
       size_t cluster_id = cluster_ids.size();
       cluster_ids[cluster] = cluster_id;
     }

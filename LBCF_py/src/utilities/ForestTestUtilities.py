@@ -20,7 +20,7 @@ class ForestTestUtilities:
         self.imbalance_penalty = 0.01
         self.num_threads = 40
         self.seed = 42
-        self.empty_clusters = [] ## 这个变量如何初始化？？？
+        self.empty_clusters = []
         self.samples_per_cluster = 0
 
         return ForestOptions(self.num_trees,

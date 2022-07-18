@@ -2,16 +2,29 @@
 ### 依赖类：RelabelingStrategy，SplittingRuleFactory，OptimizedPredictionStrategy
 ### 依赖类： Data，ForestOptions，Tree，RandomSampler,TreeTrainer, utility
 
-class ForestTrain:
+import imp
+import numpy as np
+from ..sampling.RandomSampler import RandomSampler
+from ..commons.Data import Data
+from ..commons.utility import *
+from ..tree.TreeTrainer import TreeTrainer
+from .Forest import Forest
+from .ForestOptions import ForestOptions
+from ..relabeling.UDCFRelabelingStrategy import UDCFRelabelingStrategy
+from ..splitting.factory.UDCFSplittingRuleFactory import UDCFSplittingRuleFactory
+from ..prediction.UDCFPredictionStrategy import UDCFPredictionStrategy
+
+
+class ForestTrainer:
 ## public:
     def __init__(self,
-                relabeling_strategy,
-                splitting_rule_factory,
-                prediction_strategy):
+                relabeling_strategy:UDCFRelabelingStrategy,
+                splitting_rule_factory:UDCFSplittingRuleFactory,
+                prediction_strategy:UDCFPredictionStrategy):
         # 实例化了私有成员变量tree_trainer
         self._tree_trainer = TreeTrainer(relabeling_strategy,splitting_rule_factory,prediction_strategy)
 
-    def train(self,data,options):
+    def train(self, data:Data, options:ForestOptions):
         trees = self._train_trees(data,options)
 
         num_variables = data.get_num_cols() - len(data.get_disallowed_split_variables())
@@ -19,7 +32,7 @@ class ForestTrain:
         return Forest(trees,num_variables,ci_group_size)
     
 ## private:
-    def _train_trees(self,data,options):
+    def _train_trees(self, data:Data, options:ForestOptions):
         num_samples = data.get_num_rows()
         num_trees = options.get_num_trees()
 
@@ -37,17 +50,23 @@ class ForestTrain:
         thread_ranges = []
         split_sequence(thread_ranges,0,num_groups-1,options.get_num_threads())
 
-        ####### 这个future确实不会。。。。
+        trees = []
+        for i in range(len(thread_ranges)-1):
+            start_index = thread_ranges[i]
+            num_tress_batch = thread_ranges[i+1]-start_index
+
+            thread_trees = self._train_batch(start_index,num_tress_batch,data,options)
+            trees += thread_trees
 
         return trees
 
 
-    def _train_batch(self,start,num_trees,data,options):
+    def _train_batch(self, start:int, num_trees:int, data:Data, options:ForestOptions):
         ci_group_size = options.get_ci_group_size()
 
         np.random.seed(options.get_random_seed() + start)
-        trees = [0] * (num_trees * ci_group_size)
-
+        
+        trees = []
         for i in range(num_trees):
             tree_seed = np.random.uniform(0,np.ramdom.random(),1) # (low,high,size) ???????这里存在不确定，待排查
             sampler = RandomSampler(tree_seed,options.get_sampling_options())
@@ -56,7 +75,7 @@ class ForestTrain:
                 tree = self._train_tree(data,sampler,options)
                 trees.append(tree)
             else:
-                group = self._train_ci_group(data,sampler,options)
+                group = self._train_ci_group(data,sampler,options) # group是List[Tree]类型
                 trees += group
         
         return trees

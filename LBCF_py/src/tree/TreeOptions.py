@@ -3,13 +3,13 @@
 class TreeOptions:
 # public:
     def __init__(self,
-                mtry,
-                min_node_size,
-                honesty,
-                honesty_fraction,
-                honesty_prune_leaves,
-                alpha,
-                imbalance_penalty) -> None:
+                mtry:int,
+                min_node_size:int,
+                honesty:bool,
+                honesty_fraction:float,
+                honesty_prune_leaves:bool,
+                alpha:float,
+                imbalance_penalty:float) -> None:
         self._mtry = mtry
         self._min_node_size = min_node_size
         self._honesty = honesty

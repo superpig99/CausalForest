@@ -5,21 +5,22 @@ import numpy as np
 
 class UDCFSplittingRule:
 # public:
-'''
-private vars:
-  size_t* counter;
-  double* weight_sums;
-  Eigen::ArrayXXd sums;
-  Eigen::ArrayXXi num_small_w;
-  Eigen::ArrayXXd sums_w;
-  Eigen::ArrayXXd sums_w_squared;
+# """
+#   private vars:
+#   size_t* counter;
+#   double* weight_sums;
+#   Eigen::ArrayXXd sums;
+#   Eigen::ArrayXXi num_small_w;
+#   Eigen::ArrayXXd sums_w;
+#   Eigen::ArrayXXd sums_w_squared;
 
-  uint min_node_size;
-  double alpha;
-  double imbalance_penalty;
-  size_t response_length;
-  size_t num_treatments;
-'''
+#   uint min_node_size;
+#   double alpha;
+#   double imbalance_penalty;
+#   size_t response_length;
+#   size_t num_treatments;
+# """
+
     def __init__(self
                 ,max_num_unique_values
                 ,min_node_size
@@ -51,11 +52,11 @@ private vars:
         num_samples = len(samples[node])
 
         weight_sum_node = 0.0
-        sum_node = np.zeros(response_length)
-        sum_node_w = np.zeros(num_treatments)
-        sum_node_w_squared = np.zeros(num_treatments)
+        sum_node = np.zeros(self._response_length)
+        sum_node_w = np.zeros(self._num_treatments)
+        sum_node_w_squared = np.zeros(self._num_treatments)
 
-        treatments = np.zeros((num_samples,num_treatments))
+        treatments = np.zeros((num_samples,self._num_treatments))
         for i in range(num_samples):
             sample = samples[node][i] # samples里存储的是下标
             sample_weight = data.get_weight(sample) # 这一步有什么意义
@@ -75,7 +76,7 @@ private vars:
 
         mean_w_node = sum_node_w / weight_sum_node
 
-        num_node_small_w = np.zeros(num_treatments)
+        num_node_small_w = np.zeros(self._num_treatments)
 
         for i in range(num_samples):
             num_node_small_w += (treatments[i] < mean_w_node).astype(int)
@@ -129,8 +130,8 @@ private vars:
                 else:
                     samples_right.append(sample)
             
-            theta_left = np.zeros((num_treatments,num_outcomes)) # theta_left的具体维度是根据_relabel_child函数的实现来敲定的
-            theta_right = np.zeros((num_treatments,num_outcomes))
+            theta_left = np.zeros((self._num_treatments,self._num_outcomes)) # theta_left的具体维度是根据_relabel_child函数的实现来敲定的
+            theta_right = np.zeros((self._num_treatments,self._num_outcomes))
             if self._relabel_child(samples_left,data,theta_left) or self._relabel_child(samples_right,data,theta_right):
                 continue
             
@@ -234,10 +235,10 @@ private vars:
         self._sums_w_squared[:num_splits] = 0
         n_missing = 0
         weight_sum_missing = 0
-        sum_missing = np.zeros(response_length)
-        sum_w_missing = np.zeros(num_treatments)
-        sum_w_squared_missing = np.zero(num_treatments)
-        num_small_w_missing = np.zero(num_treatments)
+        sum_missing = np.zeros(self._response_length)
+        sum_w_missing = np.zeros(self._num_treatments)
+        sum_w_squared_missing = np.zero(self._num_treatments)
+        num_small_w_missing = np.zero(self._num_treatments)
 
         split_index = 0
         for i in range(num_samples - 1):
@@ -277,7 +278,7 @@ private vars:
         sum_left = sum_missing
         sum_left_w = sum_w_missing
 
-        sum_right_w = np.zeros(num_treatments)
+        sum_right_w = np.zeros(self._num_treatments)
         sum_left_w_squared = sum_w_squared_missing
         num_left_samll_w = num_small_w_missing
 
@@ -310,7 +311,7 @@ private vars:
                 
                 n_right = num_samples - n_left
 
-                if ((num_node_small_w - num_left_samll_w < self._min_node_size).any()) or ((n_right - num_node_small_w + num_left_samll_w < self._min_node_size).any()):
+                if ((self._num_node_small_w - num_left_samll_w < self._min_node_size).any()) or ((n_right - num_node_small_w + num_left_samll_w < self._min_node_size).any()):
                     break
                 
                 if ((sum_left_w_squared - sum_left_w**2 / weight_sum_left < self._min_child_size).any()) or ((self._imbalance_penalty > 0.0) and (sum_left_w_squared - sum_left_w**2 / weight_sum_left == 0).all()):

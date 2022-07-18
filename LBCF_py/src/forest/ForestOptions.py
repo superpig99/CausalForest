@@ -1,26 +1,32 @@
 ### ForestOptions类：
 ### 依赖类：TreeOptions, SamplingOptions
 
+from typing import List
+import random
 import numpy as np
+
+from ..tree.TreeOptions import TreeOptions
+from ..sampling.SamplingOptions import SamplingOptions
+
 DEFAULT_NUM_THREADS = 0
 
 class ForestOptions:
 # public:
     def __init__(self,
-                num_trees,
-                ci_group_size,
-                sample_fraction,
-                mtry,
-                min_node_size,
-                honesty,
-                honesty_fraction,
-                honesty_prune_leaves,
-                alpha,
-                imbalance_penalty,
-                num_threads,
-                random_seed,
-                sample_clusters,
-                samples_per_cluster):
+                num_trees:int,
+                ci_group_size:int,
+                sample_fraction:float,
+                mtry:int,
+                min_node_size:int,
+                honesty:bool,
+                honesty_fraction:float,
+                honesty_prune_leaves:bool,
+                alpha:float,
+                imbalance_penalty:float,
+                num_threads:int,
+                random_seed:int,
+                sample_clusters:List[int],
+                samples_per_cluster:int):
         self._ci_group_size = ci_group_size
         self._sample_fraction = sample_fraction
         self._tree_options = TreeOptions(mtry, min_node_size, honesty, honesty_fraction, honesty_prune_leaves, alpha, imbalance_penalty)
@@ -36,12 +42,12 @@ class ForestOptions:
         if random_seed != 0:
             self._random_seed = random_seed
         else:
-            self._random_seed = np.random.randn() ### 这里不确定，待排查
+            self._random_seed = random.getrandbits(32) # 生成32位的随机数
 
 
-    def validate_num_threads(self,num_threads):
+    def validate_num_threads(self,num_threads:int):
         if num_threads == DEFAULT_NUM_THREADS:
-            return ??? # 这里的线程数是程序内还是本地全局的？？？
+            return 4 # 这里的线程数是程序内还是本地全局的？？？ # 请教后得知随便设就行
         elif num_threads > 0:
             return num_threads
         else:

@@ -16,7 +16,7 @@ def split_sequence(result,start,end,num_parts):
         result.append(end+1)
         return
     
-    if num_parts > end - start + 1:
+    if num_parts > (end - start + 1):
         for i in range(start,end+2):
             result.append(i)
         return
@@ -45,15 +45,19 @@ def load_data(file_name):
     dtype: {file_name: string, data: pd.DataFrame, num_rows: int, num_cols: int}
     """
     # load data
-    # data = pd.read_csv(file_name) # pandas.dataframe类型
-    # return [data,data.shape]
+    data = pd.read_csv(file_name) # pandas.dataframe类型，注意所读的数据在存储时不能存储index
+    return [data,data.shape]
 
     # pyspark类型
-    data = spark.read\
-        .option("inferSchema","true") \
-        .option("header","true") \
-        .csv(file_name)
-    return [data,[data.count(),len(data.columns)]]
+    # data = spark.read\
+    #     .option("inferSchema","true") \
+    #     .option("header","true") \
+    #     .csv(file_name)
+    # return [data,[data.count(),len(data.columns)]]
+
+def load_data_pyspark(df_data):
+    df_data.cache() # df_data是pyspark的dataframe
+    return [df_data,[df_data.count(),len(df_data.columns)]]
 
 
 # 这里和cpp原版存在区别，因为python取数不需要用到num_rows，所以，传入的data参数只需要是data即可，不需要data pair

@@ -1,9 +1,11 @@
 ### forest类：
 ### 依赖类：Tree
+from typing import List
+from ..tree.Tree import Tree
 
 class Forest:
 # public:
-    def __init__(self,trees,num_variables,ci_group_size):
+    def __init__(self,trees:List[Tree], num_variables:int, ci_group_size:int):
         self._trees += trees # np.array不支持这个操作的！注意辨别
         self._num_variables = num_variables
         self._ci_group_size = ci_group_size

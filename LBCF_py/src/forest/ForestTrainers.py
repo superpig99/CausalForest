@@ -5,12 +5,13 @@
 from .ForestTrainer import ForestTrainer
 from ..relabeling.UDCFRelabelingStrategy import UDCFRelabelingStrategy
 from ..splitting.factory.UDCFSplittingRuleFactory import UDCFSplittingRuleFactory
+from ..splitting.factory.MultiRegressionSplittingRuleFactory import MultiRegressionSplittingRuleFactory
 from ..prediction.UDCFPredictionStrategy import UDCFPredictionStrategy
 
 def instrumental_trainer(reduced_form_weight,stabilize_splits):
     pass
 
-def udcf_trainer(num_treatments,num_outcomes,stabilize_splits):
+def udcf_trainer(num_treatments:int, num_outcomes:int, stabilize_splits:bool):
     response_length = num_treatments * num_outcomes
 
     relabeling_strategy = UDCFRelabelingStrategy(response_length)

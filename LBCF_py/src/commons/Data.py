@@ -11,7 +11,7 @@ class Data:
                 data,
                 num_rows,
                 num_cols):
-        self._data = data # 数据
+        self._data = data # 数据，若从文件读取，则data为pandas类型，否则为pyspark类型，注意后续操作
         self._num_rows = num_rows # 数据行数
         self._num_cols = num_cols # 字段个数
         self._disallowed_split_variables = []
@@ -143,3 +143,19 @@ class Data:
     def get(self,row,col): # cpp里的data是按列存储的
         return self._data.iloc[row,col] # 这里是按pandas来写的
         # 按照这种写法，row和col可以是list类型，一次性取出多个数据
+
+# private：
+# 私有成员变量：
+'''
+self._data: pandas.dataframe / pyspark.dataframe
+self._num_rows: int
+self._num_rows: int
+self._disallowed_split_variables: List[int]
+self._outcome_index: List[int]
+self._treatment_index: List[int]
+self._instrument_index: List[int]
+self._weight_index: List[int]
+self._causal_survival_numerator_index: List[int]
+self._causal_survival_denominator_index: List[int]
+self._censor_index: List[int]
+'''

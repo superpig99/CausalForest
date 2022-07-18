@@ -161,7 +161,7 @@ void OptimizedPredictionCollector::add_prediction_values(size_t node,
     const PredictionValues& prediction_values,
     std::vector<double>& combined_average) const {
   if (combined_average.empty()) {
-    combined_average.resize(prediction_values.get_num_types());
+    combined_average.resize(prediction_values.get_num_types()); // resize函数用于改变vector大小
     //std::cout << "prediction_values.get_num_types()" << prediction_values.get_num_types() << std::endl;
   }
 

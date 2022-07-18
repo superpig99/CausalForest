@@ -121,7 +121,7 @@ public:
 private:
   const double* data_ptr;
   size_t num_rows;
-  size_t num_cols;
+  size_t num_rows;
 
   std::set<size_t> disallowed_split_variables;
   nonstd::optional<std::vector<size_t>> outcome_index;
