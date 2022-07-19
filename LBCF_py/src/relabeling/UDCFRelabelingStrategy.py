@@ -2,15 +2,16 @@
 # 依赖于：Data
 
 import numpy as np
+from typing import List
 from ..commons.Data import Data
 
 
 class UDCFRelabelingStrategy:
 # public:
-    def __init__(self,response_length):
+    def __init__(self, response_length:int):
         self._response_length = response_length
     
-    def relabel(self,samples,data,responses_by_sample): # responses_by_sample得是np.array类型
+    def relabel(self, samples:List[int], data:Data, responses_by_sample:np.ndarray): # responses_by_sample得是np.array类型
         num_samples = len(samples)
         num_treatments = data.get_num_treatments()
         num_outcomes = data.get_num_outcomes
@@ -46,18 +47,18 @@ class UDCFRelabelingStrategy:
         if abs(sum_weight)<= 1e-16:
             return True
         
-        WW_bar = W_centered.T * np.diag(weights) * W_centered
+        WW_bar = np.dot(W_centered.T, np.dot(np.diag(weights),  W_centered)) # 注意矩阵乘法
 
         if abs(np.linalg.det(WW_bar)-0.0) <= 1.0e-10:
             return True
         
         A_p_inv = np.linalg.inv(WW_bar)
 
-        beta = A_p_inv * W_centered.T * np.diag(weights) * Y_centered
+        beta = np.dot(A_p_inv, np.dot(W_centered.T, np.dot(np.diag(weights), Y_centered)))
 
-        rho_weight = W_centered * A_p_inv.T
+        rho_weight = np.dot(W_centered, A_p_inv.T)
 
-        residual = Y_centered - W_centered*beta
+        residual = Y_centered - np.dot(W_centered, beta)
 
         for i in range(num_samples): # 可以转成矩阵操作么？？不然运行起来会很慢
             sample = samples[i]
@@ -65,7 +66,7 @@ class UDCFRelabelingStrategy:
             for outcome in range(num_outcomes):
                 for treatment in range(num_treatments):
                     responses_by_sample[sample,j] = rho_weight[i,treatment] * residual[i,outcome]
-                    j++
+                    j += 1
         
         return False
 

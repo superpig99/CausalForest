@@ -3,13 +3,13 @@
 ### disallowed_split_variables该私有成员变量没有被定义
 
 from typing import List
-from LBCF_py.src.prediction.PredictionValues import PredictionValues
 import numpy as np
 
 from ..relabeling.UDCFRelabelingStrategy import UDCFRelabelingStrategy
 from ..splitting.factory.UDCFSplittingRuleFactory import UDCFSplittingRuleFactory
 from ..splitting.UDCFSplittingRule import UDCFSplittingRule
 from ..prediction.UDCFPredictionStrategy import UDCFPredictionStrategy
+from ..prediction.PredictionValues import PredictionValues
 from ..commons.Data import Data
 from ..sampling.RandomSampler import RandomSampler
 from .TreeOptions import TreeOptions
@@ -28,19 +28,20 @@ class TreeTrainer:
 
     def train(self, data:Data, sampler:RandomSampler, clusters:List[int], options:TreeOptions):
         child_nodes = [[],[]]
-        nodes = [] # cpp里定义的是个二维向量，但初始化的时候没有指明？？？？
+        nodes = [] # cpp里定义的是个二维向量，_create_empty_node实现了二维化
         split_vars = []
         split_values = []
         send_missing_left = []
         self._create_empty_node(child_nodes, nodes, split_vars, split_values, send_missing_left)
+        # 经过_create_empty_node操作后，child_nodes变为[[0],[0]]，nodes变为[[]]，split_vars变为[0]，split_values变为[0]，send_missing_left变为[True]
 
         new_leaf_samples = []
 
         if options.get_honesty():
             tree_growing_clusters = []
             new_leaf_clusters = []
-            sampler.subsample(clusters,options.get_honesty_fraction(), tree_growing_clusters, new_leaf_clusters)
-            sampler.sample_from_clusters(tree_growing_clusters, nodes[0]) # 注意这里的nodes[0]写法是否有误
+            sampler.subsample(clusters,options.get_honesty_fraction(), tree_growing_clusters, new_leaf_clusters,if_oob = True) # 这里的subsample和cpp有区别，需要增加if_oob参数
+            sampler.sample_from_clusters(tree_growing_clusters, nodes[0])
             sampler.sample_from_clusters(new_leaf_clusters, new_leaf_samples)
         else:
             sampler.sample_from_clusters(clusters, nodes[0])
@@ -56,7 +57,7 @@ class TreeTrainer:
             if is_leaf_node:
                 num_open_nodes -= 1
             else:
-                nodes[i] = []
+                nodes[i] = [] # clear操作
                 num_open_nodes += 1
             i+=1
         
@@ -79,7 +80,7 @@ class TreeTrainer:
 
 
 # private
-    def _create_empty_node(self, child_nodes, samples, split_vars, split_values, send_missing_left):
+    def _create_empty_node(self, child_nodes:List[List[int]], samples:List[List[int]], split_vars:List[int], split_values:List[float], send_missing_left:List[bool]):
         child_nodes[0].append(0)
         child_nodes[1].append(0)
         samples.append([])
@@ -103,7 +104,7 @@ class TreeTrainer:
         
 
     def _create_split_variable_subset(self, result:List[int], sampler:RandomSampler, data:Data, mtry:int):
-        num_independent_variables = data.get_num_cols() - data.get_disallowed_split_variables()
+        num_independent_variables = data.get_num_cols() - len(data.get_disallowed_split_variables())
         mtry_sample = sampler.sample_poisson(mtry)
         split_mtry = max(min(mtry_sample,num_independent_variables),1)
 
@@ -165,7 +166,7 @@ class TreeTrainer:
             split_values[node] = -1.0
             return True
         
-        stop = self._relabeling_strategy.relabel(samples[node],data,responses_by_sample)
+        stop = self._relabeling_strategy.relabel(samples[node], data, responses_by_sample)
 
         if stop or splitting_rule.find_best_split(data,node,possible_split_vars,responses_by_sample,samples,split_vars,split_values,send_missing_left):
             split_values[node] = -1.0

@@ -71,7 +71,7 @@ class RandomSampler:
             self._draw_fisher_yates(result,max_n,skip,num_samples)
 
     def sample_poisson(self,mean):
-        return np.random.poisson(lam = mean, size = 1) # 返回的是np.array([val])
+        return int(np.random.poisson(lam = mean, size = 1)) # 因为np.random.poisson返回的是np.array([val])
 
 # private:
     def _shuffle_and_split(self, samples:List[int], n_all:int, size:int):

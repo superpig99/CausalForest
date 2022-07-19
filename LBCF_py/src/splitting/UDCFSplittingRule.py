@@ -1,7 +1,10 @@
 # UDCFSplittingRule类:
 # 依赖类：
-
 import numpy as np
+from typing import List
+
+from LBCF_py.src.commons.Data import Data
+
 
 class UDCFSplittingRule:
 # public:
@@ -22,12 +25,12 @@ class UDCFSplittingRule:
 # """
 
     def __init__(self
-                ,max_num_unique_values
-                ,min_node_size
-                ,alpha
-                ,imbalance_penalty
-                ,response_length
-                ,num_treatments):
+                ,max_num_unique_values:int
+                ,min_node_size:int
+                ,alpha:float
+                ,imbalance_penalty:float
+                ,response_length:int
+                ,num_treatments:int):
         self._min_node_size = min_node_size
         self._alpha = alpha
         self._imbalance_penalty = imbalance_penalty
@@ -41,14 +44,14 @@ class UDCFSplittingRule:
         self._sums_w_squared = np.zeros((max_num_unique_values,num_treatments))
     
     def find_best_split(self
-                        ,data
-                        ,node
-                        ,possible_split_vars
-                        ,responses_by_sample
-                        ,samples
-                        ,split_vars
-                        ,split_values
-                        ,send_missing_left):
+                        ,data:Data
+                        ,node:int
+                        ,possible_split_vars:List[int]
+                        ,responses_by_sample:np.ndarray
+                        ,samples:List[List[int]]
+                        ,split_vars:List[int]
+                        ,split_values:List[float]
+                        ,send_missing_left:List[bool]):
         num_samples = len(samples[node])
 
         weight_sum_node = 0.0
@@ -86,6 +89,7 @@ class UDCFSplittingRule:
         best_value = []
         best_decrease = []
         best_send_missing_left = []
+
         for var in possible_split_vars:
             self._find_best_split_value(data, node, var, num_samples, num_samples, sum_node, mean_w_node, num_node_small_w,
                                         sum_node_w, sum_node_w_squared, min_child_size, treatments, best_value,
@@ -95,12 +99,12 @@ class UDCFSplittingRule:
             return True
         
         best_decrease_copy = best_decrease[:]
-        num_decrease = len(best_decrease)
+        num_decrease = len(best_decrease_copy)
         best_decrease.sort()
         N = max(int(num_decrease*0.05),1)
 
         decrease_threshold = 0
-        for decrease in best_decrease:
+        for decrease in best_decrease: # 这个for循环也可以改进
             N -= 1
             if N==0:
                 decrease_threshold = decrease
@@ -109,6 +113,7 @@ class UDCFSplittingRule:
         intra_split_value = []
         intra_split_var = []
         intra_missing_left = []
+
         for i in range(num_decrease):
             if best_decrease_copy[i] >= decrease_threshold:
                 intra_split_value.append(best_value[i])
@@ -132,11 +137,9 @@ class UDCFSplittingRule:
             
             theta_left = np.zeros((self._num_treatments,self._num_outcomes)) # theta_left的具体维度是根据_relabel_child函数的实现来敲定的
             theta_right = np.zeros((self._num_treatments,self._num_outcomes))
+
             if self._relabel_child(samples_left,data,theta_left) or self._relabel_child(samples_right,data,theta_right):
                 continue
-            
-            theta_left_mean = np.mean(theta_left)
-            theta_right_mean = np.mean(theta_right)
 
             theta_left_var = np.var(theta_left)
             theta_right_var = np.var(theta_right)

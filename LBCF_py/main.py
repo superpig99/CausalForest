@@ -3,21 +3,21 @@ import os
 from typing import List
 import pandas as pd
 
-from .src.tree.Tree import Tree # not finished
+from .src.tree.Tree import Tree
 
 # from .src.prediction.DefaultPredictionStrategy
 from .src.commons.utility import *
 from .src.commons.Data import Data
 from .src.prediction.Prediction import Prediction
 
-from .src.forest.ForestPredictor import ForestPredictor # not finished
-from .src.forest.ForestTrainer import ForestTrainer # not finished
+from .src.forest.ForestPredictor import ForestPredictor
+from .src.forest.ForestTrainer import ForestTrainer
 
 # from .src.utilities.FileTestUtilities import FileTestUtilities
 from .src.utilities.ForestTestUtilities import ForestTestUtilities
 
-from .src.forest.ForestTrainers import * # not finished
-from .src.forest.ForestPredictors import * # not finished
+from .src.forest.ForestTrainers import *
+from .src.forest.ForestPredictors import *
 
 
 def update_predictions_file(file_name:str,predictions:List[Prediction]):

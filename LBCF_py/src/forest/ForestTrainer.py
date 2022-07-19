@@ -68,7 +68,7 @@ class ForestTrainer:
         
         trees = []
         for i in range(num_trees):
-            tree_seed = np.random.uniform(0,np.ramdom.random(),1) # (low,high,size) ???????这里存在不确定，待排查
+            tree_seed = np.random.uniform(0,np.ramdom.random(),1) # ???????这里存在不确定，待排查
             sampler = RandomSampler(tree_seed,options.get_sampling_options())
 
             if ci_group_size == 1:
@@ -81,9 +81,9 @@ class ForestTrainer:
         return trees
 
 
-    def _train_tree(self,data,sampler,options):
+    def _train_tree(self, data:Data, sampler:RandomSampler, options:ForestOptions):
         clusters = []
-        sampler.sample_clusters(data.get_num_rows(),options.get_sample_fraction(),clusters)
+        sampler.sample_clusters(data.get_num_rows(), options.get_sample_fraction(), clusters) # 填充clusters
 
         return self._tree_trainer.train(data,sampler,clusters,options.get_tree_options())
 
